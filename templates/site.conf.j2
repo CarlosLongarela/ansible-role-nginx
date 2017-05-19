@@ -1,0 +1,165 @@
+# {{ ansible_managed }}
+{% if item.value.sin_www == true %}
+# Dominio con www para capturar las peticiones a www
+# y redirigirlas a la versión sin www
+{% else %}
+# Dominio sin www para capturar las peticiones sin www
+# y redirigirlas a la versión con www
+{% endif %}
+server {
+	# Host del Servidor
+{% if item.value.sin_www == true %}
+	server_name	www.{{ item.value.dominio }};
+{% else %}
+	server_name		{{ item.value.dominio }};
+{% endif %}
+	# Puertos del Servidor
+	listen			80;
+{% if item.value.ssl == true %}
+	listen			443 ssl http2;
+{% endif %}
+	listen			[::]:80;
+{% if item.value.ssl == true %}
+	listen			[::]:443 ssl http2;
+{% endif %}
+
+{% if item.value.ssl == true %}
+	## Certificado SSL
+	ssl_certificate			/etc/letsencrypt/live/{{ item.value.dominio }}/fullchain.pem;
+	ssl_certificate_key		/etc/letsencrypt/live/{{ item.value.dominio }}/privkey.pem;
+{% endif %}
+
+{% if item.value.sin_www == true %}
+	# Redirección a la versión sin www
+	return		301 http{% if item.value.ssl == true %}s{% endif %}://{{ item.value.dominio }}$request_uri;
+{% else %}
+	# Redirección a la versión con www
+	return		301 http{% if item.value.ssl == true %}s{% endif %}://www.{{ item.value.dominio }}$request_uri;
+{% endif %}
+}
+
+{% if item.value.ssl == true %}
+## Redirigimos todas las peticiones HTTP a HTTPS
+server {
+	# Server host
+	server_name	{{ item.value.dominio }};
+	# Puerto del servidor
+	listen		80;
+	listen		[::]:80;
+
+{% if item.value.sin_www == true %}
+	return		301 https://{{ item.value.dominio }}$request_uri;
+{% else %}
+	return		301 https://www.{{ item.value.dominio }}$request_uri;
+{% endif %}
+}
+{% endif %}
+
+# Bloque de configuración general del servidor
+# Parte encargada de todas las peticiones del servidor
+server{
+	# Host del Servidor
+{% if item.value.sin_www == true %}
+	server_name		{{ item.value.dominio }};
+{% else %}
+	server_name		www.{{ item.value.dominio }};
+{% endif %}
+
+{% if item.value.ssl == true %}
+	# Puerto del servidor
+	listen		443 ssl http2;
+	listen		[::]:443 ssl http2;
+{% else %}
+	listen		80;
+	listen		[::]:80;
+{% endif %}
+
+	# Carpeta raíz del sitio web
+	root		{{ item.value.root }};
+
+	# Logs web
+	access_log		{{ nginx_vhosts_root }}/{{ item.value.dominio }}/logs/access.log web_cache;
+	error_log		{{ nginx_vhosts_root }}/{{ item.value.dominio }}/logs/error.log;
+
+{% if item.value.ssl == true %}
+	# Certificado SSL
+	ssl_certificate			/etc/letsencrypt/live/{{ item.value.dominio }}/fullchain.pem;
+	ssl_certificate_key		/etc/letsencrypt/live/{{ item.value.dominio }}/privkey.pem;
+
+	# Seguridad SSL Fuerte con códigos en [Cipher list](https://cipherli.st/)
+	ssl_protocols TLSv1.2;
+	ssl_prefer_server_ciphers on;
+	ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+	ssl_ecdh_curve secp384r1;
+	ssl_session_cache shared:SSL:10m;
+	ssl_session_tickets off;
+	ssl_stapling on;
+	ssl_stapling_verify on;
+	resolver 127.0.0.1 213.186.33.99 8.8.8.8 valid=300s;
+	resolver_timeout 5s;
+	add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+	add_header X-Frame-Options DENY;
+	add_header X-Content-Type-Options nosniff;
+
+	# Primero generarlo con:
+	# cd /etc/ssl/certs
+	# openssl dhparam -out dhparam.pem 4096
+	ssl_dhparam               /etc/ssl/certs/dhparam.pem;
+
+	# Para los certificacdos de Lets Encrypt
+	location ~ /.well-known {
+		allow all;
+	}
+{% endif %}
+
+# Restricciones/seguridad general
+include {{ nginx_conf_dir }}/snippets/security.conf;
+
+############################################################
+######## Reglas para Caché desde Nginx #####################
+############################################################
+set $skip_cache 0;
+
+# peticiones POST y urls con parametros deben ir siempre a PHP
+if ($request_method = POST) {
+	set $skip_cache 1;
+}
+
+if ($query_string != "") {
+	set $skip_cache 1;
+}
+
+# Sin cache en uris que contengan los siguientes segmentos
+if ($request_uri ~* "/wp-admin/|/xmlrpc.php|wp-.*.php|/feed/|index.php|sitemap(_index)?.xml") {
+	set $skip_cache 1;
+}
+
+# Sin cache  para usuarios conectados y comentarios recien enviados
+if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_no_cache|wordpress_logged_in") {
+	set $skip_cache 1;
+}
+############################################################
+######## Reglas para Caché desde Nginx #####################
+############################################################
+
+# Reglas para WordPress
+location / {
+	try_files $uri $uri/ /index.php?$args;
+}
+
+# Añadir barra final a las peticiones */wp-admin
+rewrite /wp-admin$ http{% if item.value.ssl == true %}s{% endif %}://$host$uri/ permanent;
+# Reglas para WordPress
+
+
+
+#        # Custom locations and settings
+#        location ~ \.php$ {
+#                root           /path/to/your/application;
+#                fastcgi_pass   unix:/var/run/php5-fpm.sock;
+#                fastcgi_index  index.php;
+#                fastcgi_param  SCRIPT_FILENAME  #/path/to/your/application$fastcgi_script_name;
+#                include        fastcgi_params;
+#        }
+
+}

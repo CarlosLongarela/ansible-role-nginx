@@ -1,0 +1,128 @@
+---
+- name: Añadir repositorio oficial de Nginx.
+  apt_repository:
+    repo: 'ppa:nginx/stable'
+    state: present
+    update_cache: yes
+
+- name: Añadir repositorio oficial de Certbot (Lets Encrypt).
+  apt_repository:
+    repo: 'ppa:certbot/certbot'
+    state: present
+    update_cache: yes
+
+- name: Instalamos Nginx (versión fastcgi_cache_purge).
+  apt:
+    name: nginx-extras
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ aptget_update_cache_valid_time }}"
+
+- name: Instalamos Certbot (Lets Encrypt).
+  apt:
+    name: certbot
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ aptget_update_cache_valid_time }}"
+
+- name: Eliminamos los snippets por defecto.
+  file:
+    path: "{{ nginx_conf_dir }}/snippets/{{ item }}"
+    state: absent
+  with_items:
+    - "fastcgi-php.conf"
+    - "snakeoil.conf"
+  notify:
+   - Recargar Nginx
+
+- name: Desactivar el sitio web por defecto.
+  file:
+    path: "{{ nginx_conf_dir }}/{{ item }}"
+    state: absent
+  with_items:
+    - "sites-enabled/default"
+    - "sites-available/default"
+  notify:
+  - Recargar Nginx
+
+- name: Nos aseguramos que Nginx está iniciado y activado al reiniciar.
+  service:
+    name: "{{ nginx_nombre_servicio }}"
+    state: started
+    enabled: yes
+
+- name: Instalamos el archivo de configuración general de Nginx.
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_conf_dir }}/nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: Reiniciar Nginx
+
+- name: Configuración de seguridad de Nginx.
+  template:
+    src: security.conf.j2
+    dest: "{{ nginx_conf_dir }}/snippets/security.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: Reiniciar Nginx
+
+- name: Creación de Virtual Hosts.
+  template:
+    src: site.conf.j2
+    dest: "{{ nginx_conf_dir }}/sites-available/{{ item.value.dominio }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_dict: "{{ nginx_vhosts }}"
+
+- name: Creación de enlaces simbólicos para Virtual Hosts activados.
+  file:
+    src: "{{ nginx_conf_dir }}/sites-available/{{ item.value.dominio }}.conf"
+    dest: "{{ nginx_conf_dir }}/sites-enabled/{{ item.value.dominio }}.conf"
+    state: link
+  with_dict: "{{ nginx_vhosts }}"
+  when:
+    - item.value.activado is defined
+    - item.value.activado == true
+  notify:
+  - Recargar Nginx
+
+- name: Capturar archivos de Hosts Disponibles.
+  command: "ls -1 {{ nginx_conf_dir }}/sites-available"
+  register: archivos_conf_disponibles
+
+- name: Capturar archivos de Hosts Activados.
+  command: "ls -1 {{ nginx_conf_dir }}/sites-enabled"
+  register: archivos_conf_activados
+
+- name: Lista de Hosts Disponibles definidos.
+  command: "echo {{ item | quote }}"
+  register: hosts_disponibles_definidos
+  with_items: "{{ nginx_vhosts | json_query('*.archivo_conf') }}"
+
+- name: Eliminar archivos de Hosts excepto Disponibles.
+  file:
+    path: "{{ nginx_conf_dir }}/sites-available/{{ item }}"
+    state: absent
+  with_items: "{{ archivos_conf_disponibles.stdout_lines | difference( hosts_disponibles_definidos.results | map(attribute='stdout') | list ) }}"
+  notify:
+  - Recargar Nginx
+
+- name: Eliminar archivos de Hosts excepto Activados.
+  file:
+    path: "{{ nginx_conf_dir }}/sites-enabled/{{ item }}"
+    state: absent
+  with_items: "{{ archivos_conf_activados.stdout_lines | difference( nginx_vhosts_activados ) | list }}"
+  notify:
+  - Recargar Nginx
+
+- name: Comprobar que exista el raiz del sitio web (con .well-known).
+  file:
+    path: "{{ item }}/.well-known"
+    state: directory
+    mode: 0755
+  with_items: "{{ nginx_vhosts | json_query('*.root') }}"
+#- name: Comprobar que exista el raiz del sitio web.

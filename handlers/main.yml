@@ -1,0 +1,32 @@
+---
+- name: Reiniciar Nginx
+  debug:
+    msg: "Comprobando la configuración primero"
+  changed_when: True
+  notify:
+    - Comprobar config Nginx
+    - Reiniciar Nginx después de comprobar config
+
+- name: Recargar Nginx
+  debug:
+    msg: "Comprobando la configuración primero"
+  changed_when: True
+  notify:
+    - Comprobar config Nginx
+    - Recargar Nginx después de comprobar config
+
+- name: Comprobar config Nginx
+  command: "{{ nginx_ejecutable }} -t"
+  register: resultado
+  changed_when: "resultado.rc != 0"
+  check_mode: no
+
+- name: Reiniciar Nginx después de comprobar config
+  service:
+    name: "{{ nginx_nombre_servicio }}"
+    state: restarted
+
+- name: Recargar Nginx después de comprobar config
+  service:
+    name: "{{ nginx_nombre_servicio }}"
+    state: reloaded

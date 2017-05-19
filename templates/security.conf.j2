@@ -1,0 +1,52 @@
+# {{ ansible_managed }}
+# Archivo de configuracion de restricciones y seguridad global
+# Creado para ser incluido en un bloque {} server
+location = /favicon.ico {
+	log_not_found off;
+	access_log off;
+}
+
+location = /robots.txt {
+	allow all;
+	log_not_found off;
+	access_log off;
+}
+
+# Denegamos todos los intentos de acceso a archivos ocultos como .htaccess, .htpasswd, .DS_Store (Mac).
+# Mantenemos el logging de las peticiones para parsearlas despues (o pasarselas a utilidades de firewall como fail2ban)
+location ~ /\. {
+	deny all;
+}
+
+# Denegamos el aceso a todos los archivos con extension .php en los directorios de subida de archivos
+# Funciona en instalaciones en subdirectorios y tambien en multiples redes
+# Mantenemos el logging de las peticiones para parsearlas despues (o pasarselas a utilidades de firewall como fail2ban)
+location ~* /(?:uploads|files)/.*\.php$ {
+	deny all;
+}
+
+# Sólo permitimos estos métodos de acceso
+if ($request_method !~ ^(GET|HEAD|POST)$ ) {
+	return 444;
+}
+# No aceptamos DELETE, SEARCH y otros métodos
+
+location /xmlrpc.php {
+#	deny all;
+#	deny w.x.y.z;
+}
+
+# Bloqueamos agentes de descarga
+if ($http_user_agent ~* LWP::Simple|wget|libwww-perl) {
+	return 403;
+}
+
+# Bloqueamos robosts que no nos interesan
+if ($http_user_agent ~ (msnbot|Purebot|Baiduspider|Lipperhey|Mail.Ru|scrapbot) ) {
+	return 403;
+}
+
+# Bloqueamos spam de referal
+if ( $http_referer ~* (jewelry|viagra|nude|girl|nudit|casino|poker|porn|sex|teen|babes) ) {
+	return 403;
+}

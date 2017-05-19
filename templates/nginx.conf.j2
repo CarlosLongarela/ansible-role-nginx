@@ -1,0 +1,64 @@
+# {{ ansible_managed }}
+user {{ nginx_user }};
+worker_processes {{ nginx_worker_processes }};
+pid {{ nginx_pidfile }};
+include {{ nginx_conf_dir }}/modules-enabled/*.conf;
+
+events {
+	worker_connections {{ nginx_worker_connections }};
+	{% if nginx_multi_accept == "on" %}
+	multi_accept on;
+	{% endif %}
+}
+
+http {
+	##
+	# Configuraciones Básicas
+	##
+	sendfile {{ nginx_sendfile }};
+	tcp_nopush {{ nginx_tcp_nopush }};
+	tcp_nodelay {{ nginx_tcp_nodelay }};
+	keepalive_timeout {{ nginx_keepalive_timeout }};
+	types_hash_max_size {{ nginx_types_hash_max_size }};
+	server_tokens {{ nginx_server_tokens }};
+
+	include {{ nginx_conf_dir }}/mime.types;
+	default_type application/octet-stream;
+
+	{% if nginx_extra_http_options %}
+	{{ nginx_extra_http_options|indent(4, False) }}
+	{% endif %}
+
+	##
+	# Opciones de Logs
+	##
+	access_log /var/log/nginx/access.log;
+	error_log /var/log/nginx/error.log;
+
+	##
+	# para controlar las entradas que han pasado por cache en el log
+	##
+	log_format web_cache '$remote_addr - $upstream_cache_status [$time_local] $request_time "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"';
+
+	##
+	# para controlar multiples peticiones desde una IP
+	##
+	limit_req_zone  $binary_remote_addr  zone=one:10m   rate=10r/m;
+
+	{% if php_fpm_pool_listen is defined %}
+##
+	# Upstream para abstraer las conexiones en backend a PHP
+	##
+	upstream php {
+		# Debe coincidir con la directiva "listen" del pool php-fpm
+		# Si en vez de por socket es por ip:puerto debe ir sin unix:
+		server unix:{{ php_fpm_pool_listen }};
+	}
+	{% endif %}
+
+	##
+	# Configuraciones de Virtual Hosts
+	##
+	include {{ nginx_conf_dir }}/conf.d/*.conf;
+	include {{ nginx_conf_dir }}/sites-enabled/*;
+}
