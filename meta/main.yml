@@ -1,6 +1,6 @@
 galaxy_info:
   author: Carlos Longarela
-  description: Nginx install and vhosts configuration with http2, nginx cache and purge.
+  description: Nginx install and vhosts configuration with http2, nginx cache/purge.
   company: Desarrollo web Carlos Longarela
 
   license: license GPLv2
