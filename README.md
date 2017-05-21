@@ -43,7 +43,7 @@ Role Variables
 
     nginx_vhosts_root: "/home/webs"
 
-    nginx_vhosts:
+    nginx_vhosts: {}
     # Ejemplo de opciones de vhosts
     #  tabernawp:
     #    default_server: true # Sólo debe existir uno como default server
