@@ -136,7 +136,7 @@
 
 - name: Comprobar que exista el directorio de logs.
   file:
-    path: "{ nginx_vhosts_root }}/{{ item }}/logs"
+    path: "{{ nginx_vhosts_root }}/{{ item }}/logs"
     state: directory
     mode: 0755
   with_items: "{{ nginx_vhosts | json_query('*.dominio') }}"
