@@ -119,6 +119,13 @@
   notify:
   - Recargar Nginx
 
+- name: Comprobar que exista el raiz del sitio web.
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items: "{{ nginx_vhosts | json_query('*.root') }}"
+
 - name: Comprobar que exista el raiz del sitio web (con .well-known).
   file:
     path: "{{ item }}/.well-known"
@@ -126,3 +133,10 @@
     mode: 0755
   with_items: "{{ nginx_vhosts | json_query('*.root') }}"
 #- name: Comprobar que exista el raiz del sitio web.
+
+- name: Comprobar que exista el directorio de logs.
+  file:
+    path: "{ nginx_vhosts_root }}/{{ item }}/logs"
+    state: directory
+    mode: 0755
+  with_items: "{{ nginx_vhosts | json_query('*.dominio') }}"
