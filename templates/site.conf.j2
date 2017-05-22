@@ -144,7 +144,7 @@ include {{ nginx_conf_dir }}/snippets/security.conf;
 	############################################################
 {% endif %}
 
-{% if item.value.cms == wordpress %}
+{% if item.value.cms == "wordpress" %}
 	# Reglas para WordPress
 	location / {
 		try_files $uri $uri/ /index.php?$args;
@@ -154,7 +154,7 @@ include {{ nginx_conf_dir }}/snippets/security.conf;
 	rewrite /wp-admin$ http{% if item.value.ssl == true %}s{% endif %}://$host$uri/ permanent;
 {% endif %}
 
-{% if item.value.cms == prestashop %}
+{% if item.value.cms == "prestashop" %}
 	rewrite ^/api/?(.*)$ /webservice/dispatcher.php?url=$1 last;
 	rewrite ^/([0-9])(-[_a-zA-Z0-9-]*)?(-[0-9]+)?/.+\.jpg$ /img/p/$1/$1$2.jpg last;
 	rewrite ^/([0-9])([0-9])(-[_a-zA-Z0-9-]*)?(-[0-9]+)?/.+\.jpg$ /img/p/$1/$2/$1$2$3.jpg last;
