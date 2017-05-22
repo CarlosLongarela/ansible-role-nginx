@@ -112,8 +112,8 @@ server{
 	}
 {% endif %}
 
-# Restricciones/seguridad general
-include {{ nginx_conf_dir }}/snippets/security.conf;
+	# Restricciones/seguridad general
+	include {{ nginx_conf_dir }}/snippets/security.conf;
 
 {% if item.value.cache_nginx == true %}
 	############################################################
