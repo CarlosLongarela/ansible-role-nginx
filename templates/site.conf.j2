@@ -115,51 +115,105 @@ server{
 # Restricciones/seguridad general
 include {{ nginx_conf_dir }}/snippets/security.conf;
 
-############################################################
-######## Reglas para Caché desde Nginx #####################
-############################################################
-set $skip_cache 0;
+{% if item.value.cache_nginx == true %}
+	############################################################
+	######## Reglas para Caché desde Nginx #####################
+	############################################################
+	set $skip_cache 0;
 
-# peticiones POST y urls con parametros deben ir siempre a PHP
-if ($request_method = POST) {
-	set $skip_cache 1;
-}
+	# peticiones POST y urls con parametros deben ir siempre a PHP
+	if ($request_method = POST) {
+		set $skip_cache 1;
+	}
 
-if ($query_string != "") {
-	set $skip_cache 1;
-}
+	if ($query_string != "") {
+		set $skip_cache 1;
+	}
 
-# Sin cache en uris que contengan los siguientes segmentos
-if ($request_uri ~* "/wp-admin/|/xmlrpc.php|wp-.*.php|/feed/|index.php|sitemap(_index)?.xml") {
-	set $skip_cache 1;
-}
+	# Sin cache en uris que contengan los siguientes segmentos
+	if ($request_uri ~* "/wp-admin/|/xmlrpc.php|wp-.*.php|/feed/|index.php|sitemap(_index)?.xml") {
+		set $skip_cache 1;
+	}
 
-# Sin cache  para usuarios conectados y comentarios recien enviados
-if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_no_cache|wordpress_logged_in") {
-	set $skip_cache 1;
-}
-############################################################
-######## Reglas para Caché desde Nginx #####################
-############################################################
+	# Sin cache  para usuarios conectados y comentarios recien enviados
+	if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_no_cache|wordpress_logged_in") {
+		set $skip_cache 1;
+	}
+	############################################################
+	######## Reglas para Caché desde Nginx #####################
+	############################################################
+{% endif %}
 
-# Reglas para WordPress
-location / {
-	try_files $uri $uri/ /index.php?$args;
-}
+{% if item.value.cms == wordpress %}
+	# Reglas para WordPress
+	location / {
+		try_files $uri $uri/ /index.php?$args;
+	}
 
-# Añadir barra final a las peticiones */wp-admin
-rewrite /wp-admin$ http{% if item.value.ssl == true %}s{% endif %}://$host$uri/ permanent;
-# Reglas para WordPress
+	# Añadir barra final a las peticiones */wp-admin
+	rewrite /wp-admin$ http{% if item.value.ssl == true %}s{% endif %}://$host$uri/ permanent;
+{% endif %}
 
+{% if item.value.cache_nginx == true %}
+	# Pasamos todas la peticiones de archivos .php al servicio php-fpm
+	location ~ \.php$ {
+		# Defensa del exploit Zero-day
+		# http://forum.nginx.org/read.php?2,88845,page=3
+		# No se ejecutara bien (404 error) si el archivo no se encuentra fisicamente en este servidor, lo que es posible con  php-fpm/php-fcgi.
+		# Comentar la linea 'try_files' si php-fpm/php-fcgi esta en otra maquina (y cruza los dedos para no ser hackeado)
+		try_files $uri =404;
 
+		# NOTA: Debemos tener "cgi.fix_pathinfo = 0;" en php.ini
+		fastcgi_split_path_info ^(.+\.php)(/.+)$;
 
-#        # Custom locations and settings
-#        location ~ \.php$ {
-#                root           /path/to/your/application;
-#                fastcgi_pass   unix:/var/run/php5-fpm.sock;
-#                fastcgi_index  index.php;
-#                fastcgi_param  SCRIPT_FILENAME  #/path/to/your/application$fastcgi_script_name;
-#                include        fastcgi_params;
-#        }
+		include fastcgi_params;
+		fastcgi_index index.php;
+		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		# fastcgi_intercept_errors on;
+		fastcgi_pass php;
 
+		fastcgi_cache_bypass $skip_cache;
+		fastcgi_no_cache $skip_cache;
+
+		fastcgi_cache DNGWP;
+		fastcgi_cache_valid  12h;
+
+		fastcgi_buffer_size 128k;
+		fastcgi_buffers 4 256k;
+		fastcgi_busy_buffers_size 256k;
+
+		# Fijamos cache para archivos html creados desde php
+		add_header Pragma "public";
+		add_header Cache-Control "max-age=21600, public, must-revalidate, proxy-revalidate";
+
+		##
+		# Para ver si se ha servido desde cache
+		#
+		add_header Fastcgi-Cache $upstream_cache_status;
+		# Saludamos
+		# add_header X-Hacker "Oh, nice to meet you ;) you can contact me at carlos at longarela dot eu";
+	}
+
+	location ~ /purge(/.*) {
+		fastcgi_cache_purge DNGWP "$scheme$request_method$host$1";
+	}
+{% else %}
+	# Pasamos todas la peticiones de archivos .php al servicio php-fpm
+	location ~ \.php$ {
+		# Defensa del exploit Zero-day
+		# http://forum.nginx.org/read.php?2,88845,page=3
+		# No se ejecutara bien (404 error) si el archivo no se encuentra fisicamente en este servidor, lo que es posible con  php-fpm/php-fcgi.
+		# Comentar la linea 'try_files' si php-fpm/php-fcgi esta en otra maquina (y cruza los dedos para no ser hackeado)
+		try_files $uri =404;
+
+		# NOTA: Debemos tener "cgi.fix_pathinfo = 0;" en php.ini
+		fastcgi_split_path_info ^(.+\.php)(/.+)$;
+
+		include fastcgi_params;
+		fastcgi_index index.php;
+		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		# fastcgi_intercept_errors on;
+		fastcgi_pass php;
+	}
+{% endif %}
 }

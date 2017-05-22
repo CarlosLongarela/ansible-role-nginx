@@ -20,6 +20,9 @@ Role Variables
     nginx_group: www-data
     nginx_pidfile: /run/nginx.pid
 
+    php_version: 7.1
+    php_fpm_pool_listen: "/run/php/php{{ php_version }}-fpm.sock"
+
     # PONER IGUAL AL NÚMERO DE PROCESADORES DE LA MÁQUINA
     nginx_worker_processes: 2
     nginx_worker_connections: "1024"
@@ -52,6 +55,8 @@ Role Variables
     #    dominio: "tabernawp.com"
     #    sin_www:  true
     #    ssl: true
+    #    cache_nginx: true
+    #    cms: wordpress
     #    root: "{{ nginx_vhosts_root }}/tabernawp.com/public"
     #    index: "index.html index.htm index.php"
     #  tabernawp2:
@@ -61,6 +66,8 @@ Role Variables
     #    dominio: "tabernawp2.com"
     #    sin_www:  true
     #    ssl: true
+    #    cache_nginx: true
+    #    cms: prestashop
     #    root: "{{ nginx_vhosts_root }}/tabernawp2.com/public"
     #    index: "index.html index.htm index.php"
 
@@ -93,6 +100,8 @@ Example Playbook
             dominio: "tabernawp.com"
             sin_www:  true
             ssl: true
+            cache_nginx: true
+            cms: wordpress
             root: "{{ nginx_vhosts_root }}/tabernawp.com/public"
             index: "index.html index.htm index.php"
 
