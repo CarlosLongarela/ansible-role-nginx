@@ -81,6 +81,8 @@ server{
 	access_log		{{ nginx_vhosts_root }}/{{ item.value.dominio }}/logs/access.log web_cache;
 	error_log		{{ nginx_vhosts_root }}/{{ item.value.dominio }}/logs/error.log;
 
+	index			{{ item.value.index }};
+
 {% if item.value.ssl == true %}
 	# Certificado SSL
 	ssl_certificate			/etc/letsencrypt/live/{{ item.value.dominio }}/fullchain.pem;
