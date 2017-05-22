@@ -33,7 +33,7 @@
     - "fastcgi-php.conf"
     - "snakeoil.conf"
   notify:
-   - Recargar Nginx
+    - Reiniciar Nginx
 
 - name: Desactivar el sitio web por defecto.
   file:
@@ -43,7 +43,7 @@
     - "sites-enabled/default"
     - "sites-available/default"
   notify:
-  - Recargar Nginx
+    - Reiniciar Nginx
 
 - name: Nos aseguramos que Nginx está iniciado y activado al reiniciar.
   service:
@@ -58,7 +58,8 @@
     owner: root
     group: root
     mode: 0644
-  notify: Reiniciar Nginx
+  notify:
+    - Reiniciar Nginx
 
 - name: Configuración de seguridad de Nginx.
   template:
@@ -67,7 +68,8 @@
     owner: root
     group: root
     mode: 0644
-  notify: Reiniciar Nginx
+  notify:
+    - Reiniciar Nginx
 
 - name: Creación de Virtual Hosts.
   template:
@@ -77,6 +79,8 @@
     group: root
     mode: 0644
   with_dict: "{{ nginx_vhosts }}"
+  notify:
+    - Reiniciar Nginx
 
 - name: Creación de enlaces simbólicos para Virtual Hosts activados.
   file:
@@ -88,7 +92,7 @@
     - item.value.activado is defined
     - item.value.activado == true
   notify:
-  - Recargar Nginx
+    - Reiniciar Nginx
 
 - name: Capturar archivos de Hosts Disponibles.
   command: "ls -1 {{ nginx_conf_dir }}/sites-available"
@@ -109,7 +113,7 @@
     state: absent
   with_items: "{{ archivos_conf_disponibles.stdout_lines | difference( hosts_disponibles_definidos.results | map(attribute='stdout') | list ) }}"
   notify:
-  - Recargar Nginx
+    - Reiniciar Nginx
 
 - name: Eliminar archivos de Hosts excepto Activados.
   file:
@@ -117,7 +121,7 @@
     state: absent
   with_items: "{{ archivos_conf_activados.stdout_lines | difference( nginx_vhosts_activados ) | list }}"
   notify:
-  - Recargar Nginx
+    - Reiniciar Nginx
 
 - name: Comprobar que exista el raiz del sitio web.
   file:
@@ -132,7 +136,6 @@
     state: directory
     mode: 0755
   with_items: "{{ nginx_vhosts | json_query('*.root') }}"
-#- name: Comprobar que exista el raiz del sitio web.
 
 - name: Comprobar que exista el directorio de logs.
   file:
