@@ -18,12 +18,6 @@
     update_cache: yes
     cache_valid_time: "{{ aptget_update_cache_valid_time }}"
 
-- name: Instalamos Certbot (Lets Encrypt).
-  apt:
-    name: certbot
-    state: present
-    update_cache: yes
-    cache_valid_time: "{{ aptget_update_cache_valid_time }}"
 
 - name: Eliminamos los snippets por defecto.
   file:
