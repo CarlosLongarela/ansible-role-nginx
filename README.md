@@ -68,6 +68,7 @@ Role Variables
     #    ssl: true
     #    cache_nginx: true
     #    cms: prestashop
+    #    prestashop_admin: admin123
     #    root: "{{ nginx_vhosts_root }}/tabernawp2.com/public"
     #    index: "index.html index.htm index.php"
 
