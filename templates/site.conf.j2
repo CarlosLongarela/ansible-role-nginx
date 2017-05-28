@@ -25,8 +25,8 @@ server {
 
 {% if item.value.ssl == true %}
 	## Certificado SSL
-	ssl_certificate			/etc/letsencrypt/live/{{ item.value.dominio }}/fullchain.pem;
-	ssl_certificate_key		/etc/letsencrypt/live/{{ item.value.dominio }}/privkey.pem;
+	ssl_certificate			/etc/letsencrypt/live/{{ item.value.dominio_dir_certbot }}/fullchain.pem;
+	ssl_certificate_key		/etc/letsencrypt/live/{{ item.value.dominio_dir_certbot }}/privkey.pem;
 {% endif %}
 
 {% if item.value.sin_www == true %}
