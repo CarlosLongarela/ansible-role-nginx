@@ -107,12 +107,12 @@ server{
 	# cd /etc/ssl/certs
 	# openssl dhparam -out dhparam.pem 4096
 	ssl_dhparam               /etc/ssl/certs/dhparam.pem;
+{% endif %}
 
-	# Para los certificacdos de Lets Encrypt
+	# Para los certificacdos de Lets Encrypt, necesario aunque aún no tenga SSL para poder solicitar el certificado
 	location ~ /.well-known {
 		allow all;
 	}
-{% endif %}
 
 	# Restricciones/seguridad general
 	include {{ nginx_conf_dir }}/snippets/security.conf;

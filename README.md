@@ -53,6 +53,7 @@ Role Variables
     #    activado: true
     #    archivo_conf: "tabernawp.com.conf"
     #    dominio: "tabernawp.com"
+    #    dominio_dir_cerbot: "tabernawp.com"
     #    sin_www:  true
     #    ssl: true
     #    cache_nginx: true
@@ -64,6 +65,7 @@ Role Variables
     #    activado: true
     #    archivo_conf: "tabernawp2.com.conf"
     #    dominio: "tabernawp2.com"
+    #    dominio_dir_cerbot: "www.tabernawp2.com"
     #    sin_www:  true
     #    ssl: true
     #    cache_nginx: true
