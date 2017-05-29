@@ -4,6 +4,7 @@ Ansible Role: Nginx
 [![Build Status](https://travis-ci.org/CarlosLongarela/ansible-role-nginx.svg?branch=master)](https://travis-ci.org/CarlosLongarela/ansible-role-nginx)
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/CarlosLongarela/ansible-role-nginx.svg)](http://isitmaintained.com/project/CarlosLongarela/ansible-role-nginx "Percentage of issues still open")
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/CarlosLongarela/ansible-role-nginx.svg)](http://isitmaintained.com/project/CarlosLongarela/ansible-role-nginx "Average time to resolve an issue")
+
 Nginx installation and configuration with virtual hosts, http2 and nginx cache/purge.
 
 Requirements
