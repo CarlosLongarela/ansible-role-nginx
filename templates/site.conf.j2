@@ -1,4 +1,16 @@
 # {{ ansible_managed }}
+
+{% if item.value.cache_nginx == true %}
+# Incluimos las reglas generales de nginx-cache
+fastcgi_cache_path {{ item.value.fcgi_cache_path }} levels={{ item.value.fcgi_levels }} keys_zone={{ item.value.fcgi_keys_zone_name }}:{{ item.value.fcgi_keys_zone_size }} inactive={{ item.value.fcgi_inactive }} use_temp_path=off;
+fastcgi_cache_key "$scheme$request_method$host$request_uri";
+fastcgi_cache_revalidate on;
+fastcgi_cache_lock on;
+fastcgi_cache_valid {{ item.value.fcgi_cache_valid }};
+fastcgi_cache_use_stale error timeout invalid_header updating http_500 http_503;
+fastcgi_ignore_headers Cache-Control Expires Set-Cookie;
+{% endif %}
+
 {% if item.value.sin_www == true %}
 # Dominio con www para capturar las peticiones a www
 # y redirigirlas a la versión sin www
@@ -78,7 +90,11 @@ server{
 	root		{{ item.value.root }};
 
 	# Logs web
+{% if item.value.cache_nginx == true %}
 	access_log		{{ nginx_vhosts_root }}/{{ item.value.dominio }}/logs/access.log web_cache;
+{% else %}
+	access_log		{{ nginx_vhosts_root }}/{{ item.value.dominio }}/logs/access.log;
+{% endif %}
 	error_log		{{ nginx_vhosts_root }}/{{ item.value.dominio }}/logs/error.log;
 
 	index			{{ item.value.index }};
@@ -260,6 +276,16 @@ server{
 		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 		# fastcgi_intercept_errors on;
 		fastcgi_pass php;
+	}
+{% endif %}
+
+{% if item.value.cms == "wordpress" %}
+	# Para evitar ataques a admin wp
+	location = /wp-login.php {
+			limit_req zone=one burst=1 nodelay;
+			include fastcgi_params;
+			fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+			fastcgi_pass php;
 	}
 {% endif %}
 }

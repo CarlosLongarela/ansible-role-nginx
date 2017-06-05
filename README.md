@@ -59,6 +59,12 @@ Role Variables
     #    sin_www:  true
     #    ssl: true
     #    cache_nginx: true
+    #    fcgi_cache_path: "/var/run/nginx-cache"
+    #    fcgi_levels: "1:2"
+    #    fcgi_keys_zone_name: "WEBWP"
+    #    fcgi_keys_zone_size: "100m"
+    #    fcgi_inactive: "10h"
+    #    fcgi_cache_valid: "6h"
     #    cms: wordpress
     #    root: "{{ nginx_vhosts_root }}/tabernawp.com/public"
     #    index: "index.html index.htm index.php"
@@ -70,7 +76,7 @@ Role Variables
     #    dominio_dir_cerbot: "www.tabernawp2.com"
     #    sin_www:  true
     #    ssl: true
-    #    cache_nginx: true
+    #    cache_nginx: false
     #    cms: prestashop
     #    prestashop_admin: admin123
     #    root: "{{ nginx_vhosts_root }}/tabernawp2.com/public"
@@ -106,6 +112,12 @@ Example Playbook
             sin_www:  true
             ssl: true
             cache_nginx: true
+            fcgi_cache_path: "/var/run/nginx-cache"
+            fcgi_levels: "1:2"
+            fcgi_keys_zone_name: "WEBWP"
+            fcgi_keys_zone_size: "100m"
+            fcgi_inactive: "10h"
+            fcgi_cache_valid: "6h"
             cms: wordpress
             root: "{{ nginx_vhosts_root }}/tabernawp.com/public"
             index: "index.html index.htm index.php"
