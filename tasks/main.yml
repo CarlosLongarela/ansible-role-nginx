@@ -5,12 +5,6 @@
     state: present
     update_cache: yes
 
-- name: Añadir repositorio oficial de Certbot (Lets Encrypt).
-  apt_repository:
-    repo: 'ppa:certbot/certbot'
-    state: present
-    update_cache: yes
-
 - name: Instalamos Nginx (versión fastcgi_cache_purge).
   apt:
     name: nginx-extras
