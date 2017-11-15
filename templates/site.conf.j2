@@ -297,6 +297,41 @@ server{
 	}
 {% endif %}
 
+{% if item.value.wpo_nginx == true %}
+	# Habilitamos compresión gzip para los tipos de archivo indicados
+	gzip on;
+	gzip_vary on;
+	gzip_comp_level 6;
+	gzip_min_length 256;
+	gzip_types text/css text/x-component application/x-javascript application/javascript text/javascript text/x-js text/richtext image/svg+xml text/plain text/xsd text/xsl text/xml image/bmp application/java application/msword application/vnd.ms-fontobject application/x-msdownload image/x-icon image/webp application/json application/vnd.ms-access application/vnd.ms-project application/x-font-otf application/vnd.ms-opentype application/vnd.oasis.opendocument.database application/vnd.oasis.opendocument.chart application/vnd.oasis.opendocument.formula application/vnd.oasis.opendocument.graphics application/vnd.oasis.opendocument.spreadsheet application/vnd.oasis.opendocument.text audio/ogg application/pdf application/vnd.ms-powerpoint application/x-shockwave-flash image/tiff application/x-font-ttf audio/wav application/vnd.ms-write application/font-woff application/font-woff2 application/vnd.ms-excel;
+
+	# Cabeceras de caducidad de archivos CSS y JS
+	location ~ \.(css|htc|less|js|js2|js3|js4)$ {
+		add_header Pragma "public";
+		add_header Cache-Control "max-age=31536000, public, must-revalidate, proxy-revalidate";
+		add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+	}
+
+	# Cabeceras de caducidad de archivos HTML, XML, TXT, etc.
+	location ~ \.(htm|rtf|rtx|svg|txt|xsd|xsl|xml)$ {
+		add_header Pragma "public";
+		add_header Cache-Control "max-age=10800, public, must-revalidate, proxy-revalidate";
+		add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+	}
+
+	# Cabeceras de caducidad de archivos de imagen, multimedia, fuentes y otros
+	location ~ \.(asf|asx|wax|wmv|wmx|avi|bmp|class|divx|doc|docx|eot|exe|gif|gz|gzip|ico|jpg|jpeg|jpe|webp|json|mdb|mid|midi|mov|qt|mp3|m4a|mp4|m4v|mpeg|mpg|mpe|mpp|otf|_otf|odb|odc|odf|odg|odp|ods|odt|ogg|png|pot|pps|ppt|pptx|ra|ram|svg|svgz|swf|tar|tif|tiff|ttf|ttc|_ttf|wav|wma|wri|woff|woff2|xla|xls|xlsx|xlt|xlw)$ {
+		add_header Pragma "public";
+		add_header Cache-Control "max-age=31536000, public, must-revalidate, proxy-revalidate";
+		add_header Link "<$scheme://$host$uri>; rel=\"canonical\"";
+		add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+		if ($request_uri ~ ^[^?]*\.(ttf|ttc|otf|eot|woff|woff2|font.css)(\?|$)) {
+			add_header Cache-Control "max-age=31536000, public, must-revalidate, proxy-revalidate";
+			add_header Access-Control-Allow-Origin "*";
+		}
+	}
+{% endif %}
+
 {% if item.value.cms == "wordpress" %}
 	# Para evitar ataques a admin wp
 	location = /wp-login.php {

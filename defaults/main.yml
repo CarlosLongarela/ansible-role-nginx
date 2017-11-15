@@ -44,6 +44,7 @@ nginx_vhosts: {}
 #    sin_www:  true
 #    ssl: true
 #    cache_nginx: true
+#    wpo_nginx: true
 #    fcgi_cache_path: "/var/run/nginx-cache"
 #    fcgi_levels: "1:2"
 #    fcgi_keys_zone_name: "WEBWP"
@@ -62,6 +63,7 @@ nginx_vhosts: {}
 #    sin_www:  true
 #    ssl: true
 #    cache_nginx: true
+#    wpo_nginx: true
 #    fcgi_cache_path: "/var/run/nginx-cache"
 #    fcgi_levels: "1:2"
 #    fcgi_keys_zone_name: "WEBWP"
