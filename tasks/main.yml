@@ -118,6 +118,15 @@
     mode: 0755
   with_items: "{{ nginx_vhosts | json_query('*.root') }}"
 
+- name: Permisos de carpetas y archivos en Raiz (Folders 755, Files 644).
+  file:
+    path: "{{ nginx_vhosts_root }}/{{ item }}/public"
+    mode: u=rwX,g=rX,o=rX
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    recurse: yes
+  with_items: "{{ nginx_vhosts | json_query('*.dominio') }}"
+
 - name: Comprobar que exista el raiz del sitio web (con .well-known).
   file:
     path: "{{ item }}/.well-known"
