@@ -7,7 +7,7 @@ nginx_group: www-data
 nginx_pidfile: /run/nginx.pid
 
 # Variables de PHP para el uso en Nginx
-php_version: 7.1
+php_version: 7.2
 php_fpm_pool_listen: "/run/php/php{{ php_version }}-fpm.sock"
 
 # PONER IGUAL AL NÚMERO DE PROCESADORES DE LA MÁQUINA
