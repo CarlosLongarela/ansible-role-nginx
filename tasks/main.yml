@@ -82,34 +82,34 @@
   notify:
     - Reiniciar Nginx
 
-- name: Capturar archivos de Hosts Disponibles.
-  command: "ls -1 {{ nginx_conf_dir }}/sites-available"
-  register: archivos_conf_disponibles
-
-- name: Capturar archivos de Hosts Activados.
-  command: "ls -1 {{ nginx_conf_dir }}/sites-enabled"
-  register: archivos_conf_activados
-
-- name: Lista de Hosts Disponibles definidos.
-  command: "echo {{ item | quote }}"
-  register: hosts_disponibles_definidos
-  with_items: "{{ nginx_vhosts | json_query('*.archivo_conf') }}"
-
-- name: Eliminar archivos de Hosts excepto Disponibles.
-  file:
-    path: "{{ nginx_conf_dir }}/sites-available/{{ item }}"
-    state: absent
-  with_items: "{{ archivos_conf_disponibles.stdout_lines | difference( hosts_disponibles_definidos.results | map(attribute='stdout') | list ) }}"
-  notify:
-    - Reiniciar Nginx
-
-- name: Eliminar archivos de Hosts excepto Activados.
-  file:
-    path: "{{ nginx_conf_dir }}/sites-enabled/{{ item }}"
-    state: absent
-  with_items: "{{ archivos_conf_activados.stdout_lines | difference( nginx_vhosts_activados ) | list }}"
-  notify:
-    - Reiniciar Nginx
+#- name: Capturar archivos de Hosts Disponibles.
+#  command: "ls -1 {{ nginx_conf_dir }}/sites-available"
+#  register: archivos_conf_disponibles
+#
+#- name: Capturar archivos de Hosts Activados.
+#  command: "ls -1 {{ nginx_conf_dir }}/sites-enabled"
+#  register: archivos_conf_activados
+#
+#- name: Lista de Hosts Disponibles definidos.
+#  command: "echo {{ item | quote }}"
+#  register: hosts_disponibles_definidos
+#  with_items: "{{ nginx_vhosts | json_query('*.archivo_conf') }}"
+#
+#- name: Eliminar archivos de Hosts excepto Disponibles.
+#  file:
+#    path: "{{ nginx_conf_dir }}/sites-available/{{ item }}"
+#    state: absent
+#  with_items: "{{ archivos_conf_disponibles.stdout_lines | difference( hosts_disponibles_definidos.results | map(attribute='stdout') | list ) }}"
+#  notify:
+#    - Reiniciar Nginx
+#
+#- name: Eliminar archivos de Hosts excepto Activados.
+#  file:
+#    path: "{{ nginx_conf_dir }}/sites-enabled/{{ item }}"
+#    state: absent
+#  with_items: "{{ archivos_conf_activados.stdout_lines | difference( nginx_vhosts_activados ) | list }}"
+#  notify:
+#    - Reiniciar Nginx
 
 - name: Comprobar que exista el raiz del sitio web.
   file:

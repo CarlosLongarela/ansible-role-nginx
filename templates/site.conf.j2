@@ -184,6 +184,13 @@ server{
 	rewrite /wp-admin$ http{% if item.value.ssl == true %}s{% endif %}://$host$uri/ permanent;
 {% endif %}
 
+{% if item.value.cms == "invoiceninja" %}
+	# Reglas para Invoice Ninja
+	location / {
+		try_files $uri $uri/ /index.php?$query_string;
+	}
+{% endif %}
+
 {% if item.value.cms == "prestashop" %}
 {#
 	rewrite ^/api/?(.*)$ /webservice/dispatcher.php?url=$1 last;
